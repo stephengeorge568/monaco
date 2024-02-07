@@ -3,7 +3,8 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { onOperationTransformedAck } from '../../services/ot.service'
 import Connector from '../../utils/SignalrConnection';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Operation, fromEvent } from '../../models/Operation';
+import { OpHistory, Operation, fromEvent } from '../../models/Operation';
+import { transform } from '../../utils/TransformUtils';
 
 export default function Code() {
   const [documentId, setDocumentId] = useState("BigTimeIdOhYeah");
@@ -11,6 +12,7 @@ export default function Code() {
   var isProgrammaticChange = useRef<boolean>(false);
   // ive seen someone use state for this, look into
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const historyRef = useRef<Map<number, Operation[]>>(new Map());
 
   const onOperationReceived = useCallback((op: Operation) => {
     if (op.originatorId !== webSocket.connection.connectionId) {
@@ -39,10 +41,8 @@ export default function Code() {
 
   function onModelChange(value: string | undefined, event: monaco.editor.IModelContentChangedEvent) {
     if (!isProgrammaticChange.current) {
-      
       let op: Operation = fromEvent(event, webSocket.connection.connectionId ?? '');
-      
-      // transform
+      op = transform(op, historyRef.current);
       webSocket.newOperation(op, documentId);
     }
   }

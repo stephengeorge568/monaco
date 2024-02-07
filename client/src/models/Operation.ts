@@ -19,5 +19,6 @@ export function fromEvent(event: monaco.editor.IModelContentChangedEvent, origin
     startLine: event.changes[0].range.startLineNumber,
     originatorId: originatorId,
   };
-  
 }
+
+export type OpHistory = { [revId: number]: Operation };
