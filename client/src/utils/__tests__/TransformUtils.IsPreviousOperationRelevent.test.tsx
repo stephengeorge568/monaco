@@ -1,7 +1,11 @@
 import { Operation } from "../../models/Operation";
 import { isPreviousOperationRelevent } from "../TransformUtils";
 
-type CaseInput = {prev: Operation, next: Operation, expected: boolean};
+type CaseInput = {
+  prev: Operation,
+  next: Operation,
+  expected: boolean
+};
 
 const cases: CaseInput[] = [
   {prev: op(1, 1, 1, 1, "1"), next: op(1, 1, 1, 1, ""), expected: true},

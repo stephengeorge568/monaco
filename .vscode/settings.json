@@ -1,3 +1,4 @@
 {
-    "jest.rootPath": "client"
+    "jest.rootPath": "../client",
+    "jest.autoRun": "off"
 }
