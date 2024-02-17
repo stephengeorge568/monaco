@@ -1,9 +1,46 @@
+import { Queue } from "../models/Queue";
 import { Operation } from "../models/Operation";
 
-// export function transform(
-//   op: Operation,
-//   history: Map<number, Operation[]>
-// ): Operation {}
+export function transform(
+  op: Operation,
+  history: Map<number, Operation[]>
+): Operation[] {
+  let transformedRequests: Operation[] = [];
+
+  let toTransformQueue: Queue<[Operation, number]> = new Queue();
+  toTransformQueue.enqueue([op, -1]);
+
+  // [operation, ]
+  let currentRequest: [Operation, number] | undefined;
+
+  while ((currentRequest = toTransformQueue.dequeue()) !== undefined) {
+    let relevantHistory: Operation[] = getRelevantHistory(op.revisionId, history);
+
+    for (let i = 0; i < relevantHistory.length; i++) {
+      let historicalRequest: Operation = relevantHistory[i];
+
+      if (op.originatorId !== historicalRequest.originatorId) {
+        let pair: Operation[] = resolveConflictingRanges(historicalRequest, currentRequest[0]);
+
+        if (currentRequest[1] < i) {
+          currentRequest[0] = transformOperation(historicalRequest, pair[0]);
+        }
+
+        if (pair[1] != null) {
+          toTransformQueue.enqueue([pair[1], i]);
+        }
+      }
+    }
+
+    for (var newHistoralRequest of transformedRequests) {
+      if (isPreviousOperationRelevent(newHistoralRequest, currentRequest[0])) {
+        currentRequest[0] = transformOperation(newHistoralRequest, currentRequest[0]);
+      }
+    }
+    transformedRequests.push(currentRequest[0]);
+  }
+  return transformedRequests;
+}
 
 // Relies on assumption that revisionIds have already been considered
 export function isPreviousOperationRelevent(
@@ -54,9 +91,9 @@ export function isECWithinRange(prev: Operation, next: Operation): boolean {
 
   if (next.endLine === prev.endLine) {
     if (next.endLine === prev.startLine) {
-      if (!(next.endColumn > prev.startColumn)) return false;
+      if (next.endColumn <= prev.startColumn) return false;
     }
-    if (next.endColumn <= prev.endColumn) return true;
+    if (next.endColumn < prev.endColumn) return true;
   }
 
   if (next.endLine === prev.startLine && next.endLine !== prev.endLine) {
@@ -93,10 +130,15 @@ export function transformOperation(
   let newEC: number = next.endColumn;
   let newSL: number = next.startLine;
   let newEL: number = next.endLine;
-  let numberOfNewLinesInPrev: number = prev.text.split(new RegExp('\r\n|\r|\n')).length - 1;
-  let prevTextLengthAfterLastNewLine: number = numberOfNewLinesInPrev > 0 ? prev.text.length - prev.text.lastIndexOf("\n") - 1 : prev.text.length;
+  let numberOfNewLinesInPrev: number =
+    prev.text.split(new RegExp("\r\n|\r|\n")).length - 1;
+  let prevTextLengthAfterLastNewLine: number =
+    numberOfNewLinesInPrev > 0
+      ? prev.text.length - prev.text.lastIndexOf("\n") - 1
+      : prev.text.length;
 
-  let netNewLineNumberChange: number = numberOfNewLinesInPrev - (prev.endLine - prev.startLine);
+  let netNewLineNumberChange: number =
+    numberOfNewLinesInPrev - (prev.endLine - prev.startLine);
 
   if (isSimpleInsert(prev)) {
     if (numberOfNewLinesInPrev > 0) {
@@ -123,7 +165,8 @@ export function transformOperation(
         newEC = newEC - prev.endColumn + prevTextLengthAfterLastNewLine + 1;
       }
     } else {
-      let numberOfCharsDeletedOnPrevLine: number = prev.endColumn - prev.startColumn;
+      let numberOfCharsDeletedOnPrevLine: number =
+        prev.endColumn - prev.startColumn;
       if (next.startLine === prev.endLine) {
         newSC = newSC - numberOfCharsDeletedOnPrevLine + prev.text.length;
       } else {
@@ -159,21 +202,24 @@ export function transformOperation(
   return next;
 }
 
-export function resolveConflictingRanges(prev: Operation, next: Operation): Operation[] {
+export function resolveConflictingRanges(
+  prev: Operation,
+  next: Operation
+): Operation[] {
   if (isSimpleInsert(prev) || isSimpleInsert(next)) {
     return [next];
   }
 
   if (isECWithinRange(next, prev) && isSCWithinRange(next, prev)) {
     let otherNext: Operation = {
-      text: '',
+      text: "",
       originatorId: next.originatorId,
       startColumn: next.startColumn,
       endColumn: next.endColumn,
       startLine: next.startLine,
       endLine: next.endLine,
-      revisionId: next.revisionId
-    }
+      revisionId: next.revisionId,
+    };
 
     //shift end of next to start of prev
     next.endColumn = prev.startColumn;
@@ -185,14 +231,14 @@ export function resolveConflictingRanges(prev: Operation, next: Operation): Oper
     return [next, otherNext];
   }
 
-  if (isSCWithinRange(prev, next)) {
-    next.startLine = prev.endLine;
-    next.startColumn = prev.endColumn;
-  }
-
-  if (isECWithinRange(prev, next)) {
+  if (isSCWithinRange(next, prev)) {
     next.endLine = prev.startLine;
     next.endColumn = prev.startColumn;
+  }
+
+  if (isECWithinRange(next, prev)) {
+    next.startLine = prev.endLine;
+    next.startColumn = prev.endColumn;
   }
 
   return [next];

@@ -53,5 +53,6 @@ function op(
     endLine: endLine,
     startLine: startLine,
     originatorId: originatorId,
+    revisionId: -1
   };
 }

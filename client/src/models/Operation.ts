@@ -6,12 +6,14 @@ export interface Operation {
   startColumn: number;
   endLine: number;
   startLine: number;
-  revisionId?: number;
+  revisionId: number;
   originatorId?: string;
 }
 
 export function fromEvent(event: monaco.editor.IModelContentChangedEvent, originatorId: string): Operation {
   return {
+    // TODO set revId
+    revisionId: 0,
     text: event.changes[0].text,
     endColumn: event.changes[0].range.endColumn,
     startColumn: event.changes[0].range.startColumn,

@@ -16,6 +16,7 @@ const casesSC: CaseInput[] = [
   {prev: op(6, 11, 1, 1, "1", "6"), next: op(14, 18, 1, 1, "2"), expected: [op(14, 18, 1, 1, "2")]},
   {prev: op(6, 11, 1, 1, "1", "7"), next: op(7, 18, 2, 2, "2"), expected: [op(7, 18, 2, 2, "2")]},
   {prev: op(1, 5, 1, 1, "1", "8"), next: op(4, 18, 1, 1, "2"), expected: [op(5, 18, 1, 1, "2")]},
+  {prev: op(7, 12, 1, 1, "1", "9"), next: op(1, 12, 1, 1, "2"), expected: [op(1, 7, 1, 1, "2")]},
 ];
 
 describe("resolveConflictingRanges", () => {
@@ -38,7 +39,8 @@ function op(
     startColumn: startColumn,
     endLine: endLine,
     startLine: startLine,
-    originatorId: originatorId
+    originatorId: originatorId,
+    revisionId: -1
   };
 }
 
