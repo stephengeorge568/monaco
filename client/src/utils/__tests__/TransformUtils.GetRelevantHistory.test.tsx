@@ -23,7 +23,7 @@ const history: Map<number, Operation[]> = new Map([
 ]);
 
 const cases: CaseInput[] = [
-  {revId: 2, history: history, expected: [op(1, 1, 1, 1, "3"), op(1, 1, 1, 1, "4")]},
+  {revId: 2, history: history, expected: [op(1, 1, 1, 1, "2"), op(1, 1, 1, 1, "3"), op(1, 1, 1, 1, "4")]},
 ];
 
 describe("getRelevantHistory", () => {

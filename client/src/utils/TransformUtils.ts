@@ -17,7 +17,7 @@ export function isPreviousOperationRelevent(
 
   if (isPrevStartLineAfterNextEndLine) return false;
   if (isSameLine) {
-    if (isInsert(next)) {
+    if (isSimpleInsert(next)) {
       if (next.endColumn < prev.startColumn) return false;
     } else {
       if (next.endColumn <= prev.startColumn) return false;
@@ -26,7 +26,9 @@ export function isPreviousOperationRelevent(
   return true;
 }
 
-// Is next SC within prev range
+/**
+ *  Is next SC within prev range
+ * */
 export function isSCWithinRange(prev: Operation, next: Operation): boolean {
   if (next.startLine > prev.startLine && next.startLine < prev.endLine)
     return true;
@@ -44,7 +46,9 @@ export function isSCWithinRange(prev: Operation, next: Operation): boolean {
   return false;
 }
 
-// Is next EC within prev range
+/**
+ *  Is next EC within prev range
+ * */
 export function isECWithinRange(prev: Operation, next: Operation): boolean {
   if (next.endLine < prev.endLine && next.endLine > prev.startLine) return true;
 
@@ -62,7 +66,7 @@ export function isECWithinRange(prev: Operation, next: Operation): boolean {
   return false;
 }
 
-export function isInsert(op: Operation): boolean {
+export function isSimpleInsert(op: Operation): boolean {
   return op.endColumn === op.startColumn && op.endLine === op.startLine;
 }
 
@@ -72,7 +76,7 @@ export function getRelevantHistory(
 ): Operation[] {
   let relevantRequests: Operation[] = [];
   history.forEach((list, id) => {
-    if (id > revId) {
+    if (id >= revId) {
       relevantRequests = [...relevantRequests, ...list];
     }
   });
@@ -94,7 +98,7 @@ export function transformOperation(
 
   let netNewLineNumberChange: number = numberOfNewLinesInPrev - (prev.endLine - prev.startLine);
 
-  if (isInsert(prev)) {
+  if (isSimpleInsert(prev)) {
     if (numberOfNewLinesInPrev > 0) {
       if (next.startLine === prev.endLine) {
         newSC = newSC - prev.endColumn + prevTextLengthAfterLastNewLine + 1;
@@ -129,7 +133,7 @@ export function transformOperation(
       if (next.endLine === prev.endLine) {
         newEC = newEC - numberOfCharsDeletedOnPrevLine + prev.text.length;
       } else {
-        if (isInsert(next)) {
+        if (isSimpleInsert(next)) {
           newEC = newSC;
         }
       }
@@ -153,4 +157,43 @@ export function transformOperation(
   next.startLine = newSL;
   next.endLine = newEL;
   return next;
+}
+
+export function resolveConflictingRanges(prev: Operation, next: Operation): Operation[] {
+  if (isSimpleInsert(prev) || isSimpleInsert(next)) {
+    return [next];
+  }
+
+  if (isECWithinRange(next, prev) && isSCWithinRange(next, prev)) {
+    let otherNext: Operation = {
+      text: '',
+      originatorId: next.originatorId,
+      startColumn: next.startColumn,
+      endColumn: next.endColumn,
+      startLine: next.startLine,
+      endLine: next.endLine,
+      revisionId: next.revisionId
+    }
+
+    //shift end of next to start of prev
+    next.endColumn = prev.startColumn;
+    next.endLine = prev.startLine;
+
+    //shift start of otherNext to end of prev
+    otherNext.startColumn = prev.endColumn;
+    otherNext.startLine = prev.endLine;
+    return [next, otherNext];
+  }
+
+  if (isSCWithinRange(prev, next)) {
+    next.startLine = prev.endLine;
+    next.startColumn = prev.endColumn;
+  }
+
+  if (isECWithinRange(prev, next)) {
+    next.endLine = prev.startLine;
+    next.endColumn = prev.startColumn;
+  }
+
+  return [next];
 }
