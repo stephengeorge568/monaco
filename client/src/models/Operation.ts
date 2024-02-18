@@ -10,10 +10,9 @@ export interface Operation {
   originatorId?: string;
 }
 
-export function fromEvent(event: monaco.editor.IModelContentChangedEvent, originatorId: string): Operation {
+export function fromEvent(event: monaco.editor.IModelContentChangedEvent, originatorId: string, revisionId: number = -1): Operation {
   return {
-    // TODO set revId
-    revisionId: 0,
+    revisionId: revisionId,
     text: event.changes[0].text,
     endColumn: event.changes[0].range.endColumn,
     startColumn: event.changes[0].range.startColumn,

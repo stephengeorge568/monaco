@@ -1,4 +1,6 @@
-using SignalRChat.Hubs;
+using Monaco.Hubs;
+using Monaco.Services;
+using Monaco.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<ITransformService, TransformService>();
 
 var app = builder.Build();
 

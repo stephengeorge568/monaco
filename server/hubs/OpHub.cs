@@ -1,20 +1,23 @@
 using Microsoft.AspNetCore.SignalR;
+using Monaco.Services.Interfaces;
 using server.models;
 
-namespace SignalRChat.Hubs
+namespace Monaco.Hubs
 {
     public class OpHub : Hub
     {
         private Dictionary<string, HashSet<string>> groups = new Dictionary<string, HashSet<string>>();
+        private ITransformService _transformService;
+        public OpHub(ITransformService transformService)
+        {
+            _transformService = transformService;
+        }
         
         public async Task NewOperation(Operation operation, string documentId)
         {
             // Transform incoming operation ...
-            Console.WriteLine(Context.ConnectionId);
-            var newRevisionId = 2;
             await PropogateOperationToGroup(operation, documentId);
-            await Clients.Caller.SendAsync("operationTransformedAck", newRevisionId);
-
+            await Clients.Caller.SendAsync("operationTransformedAck", 1);
         }
 
         public override async Task OnConnectedAsync()
