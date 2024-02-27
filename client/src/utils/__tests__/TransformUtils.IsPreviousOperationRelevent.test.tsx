@@ -32,6 +32,7 @@ function op(
   originatorId: string,
 ): Operation {
   return {
+    revisionId: -1,
     text: "irrelevant",
     endColumn: endColumn,
     startColumn: startColumn,

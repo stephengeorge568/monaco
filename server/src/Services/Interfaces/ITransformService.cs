@@ -12,4 +12,5 @@ public interface ITransformService
     List<Operation> ResolveConflictingRanges(Operation prev, Operation next);
     Operation TransformOperation(Operation prev, Operation next);
     List<Operation> Transform(Operation op, Dictionary<NumberFormatInfo, List<Operation>> history);
+    bool IsSimpleInsert(Operation op);
 }

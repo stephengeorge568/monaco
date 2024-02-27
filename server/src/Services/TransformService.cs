@@ -4,6 +4,8 @@ using server.models;
 
 namespace Monaco.Services;
 
+// Could be static class in current state, but would likely require
+// integration of other async services later down the line.
 public class TransformService : ITransformService
 {
     private int RevisionId;
@@ -43,7 +45,24 @@ public class TransformService : ITransformService
 
     public bool IsPreviousOperationRelevant(Operation prev, Operation next)
     {
-        throw new NotImplementedException();
+        if (prev.OriginatorId == next.OriginatorId) return false;
+
+        var isPrevStartLineAfterNextEndLine = prev.StartLine > next.EndLine;
+        var isSameLine = prev.StartLine == next.EndLine;
+
+        if (isPrevStartLineAfterNextEndLine) return false;
+        if (isSameLine)
+        {
+            if (IsSimpleInsert(next))
+            {
+                if (next.EndColumn < prev.StartColumn) return false;
+            }
+            else
+            {
+                if (next.EndColumn <= prev.StartColumn) return false;
+            }
+        }
+        return true;
     }
 
     public bool IsSCWithinRange(Operation prev, Operation next)
@@ -82,5 +101,10 @@ public class TransformService : ITransformService
     public Operation TransformOperation(Operation prev, Operation next)
     {
         throw new NotImplementedException();
+    }
+
+    public bool IsSimpleInsert(Operation op)
+    {
+        return op.EndColumn == op.StartColumn && op.EndLine == op.StartLine;
     }
 }
