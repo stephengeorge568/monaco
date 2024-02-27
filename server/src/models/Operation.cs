@@ -14,5 +14,11 @@ namespace server.models
         public int EndLine { get; set; }
         public int RevisionId { get; set; }
         public string? OriginatorId { get; set; }
+        public bool IsSimpleInsert { 
+            get 
+            {
+                return StartColumn == EndColumn && StartLine == EndLine;
+            }
+        }
     }   
 }

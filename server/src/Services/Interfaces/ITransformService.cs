@@ -5,7 +5,6 @@ namespace Monaco.Services.Interfaces;
 
 public interface ITransformService
 {
-    bool IsSimpleInsert(Operation op);
     List<Operation> GetRelevantHistory(int revisionId, Dictionary<NumberFormatInfo, List<Operation>> history);
     bool IsECWithinRange(Operation prev, Operation next);
     bool IsSCWithinRange(Operation prev, Operation next);
