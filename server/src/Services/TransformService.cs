@@ -17,9 +17,17 @@ public class TransformService : ITransformService
         history = new();
     }
 
-    public List<Operation> GetRelevantHistory(int revisionId, Dictionary<NumberFormatInfo, List<Operation>> history)
+    public List<Operation> GetRelevantHistory(int revisionId, Dictionary<int, List<Operation>> history)
     {
-        throw new NotImplementedException();
+        var relevantRequests = new List<Operation>();
+        foreach(var pair in history)
+        {
+            if (pair.Key >= revisionId)
+            {
+                relevantRequests.AddRange(pair.Value);
+            }
+        }
+        return relevantRequests;
     }
 
     public bool IsECWithinRange(Operation prev, Operation next)

@@ -5,7 +5,7 @@ namespace Monaco.Services.Interfaces;
 
 public interface ITransformService
 {
-    List<Operation> GetRelevantHistory(int revisionId, Dictionary<NumberFormatInfo, List<Operation>> history);
+    List<Operation> GetRelevantHistory(int revisionId, Dictionary<int, List<Operation>> history);
     bool IsECWithinRange(Operation prev, Operation next);
     bool IsSCWithinRange(Operation prev, Operation next);
     bool IsPreviousOperationRelevant(Operation prev, Operation next);
