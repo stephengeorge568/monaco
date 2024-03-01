@@ -20,7 +20,7 @@ public class TransformService : ITransformService
     public List<Operation> GetRelevantHistory(int revisionId, Dictionary<int, List<Operation>> history)
     {
         var relevantRequests = new List<Operation>();
-        foreach(var pair in history)
+        foreach (var pair in history)
         {
             if (pair.Key >= revisionId)
             {
@@ -98,7 +98,46 @@ public class TransformService : ITransformService
 
     public List<Operation> ResolveConflictingRanges(Operation prev, Operation next)
     {
-        throw new NotImplementedException();
+        if (IsSimpleInsert(prev) || IsSimpleInsert(next))
+        {
+            return [next];
+        }
+
+        if (IsECWithinRange(next, prev) && IsSCWithinRange(next, prev))
+        {
+            var otherNext = new Operation() {
+                Text = "",
+                OriginatorId = next.OriginatorId,
+                StartColumn = next.StartColumn,
+                EndColumn = next.EndColumn,
+                StartLine = next.StartLine,
+                EndLine = next.EndLine,
+                RevisionId = next.RevisionId,
+            };
+
+            //shift end of next to start of prev
+            next.EndColumn = prev.StartColumn;
+            next.EndLine = prev.StartLine;
+
+            //shift start of otherNext to end of prev
+            otherNext.StartColumn = prev.EndColumn;
+            otherNext.StartLine = prev.EndLine;
+            return [next, otherNext];
+        }
+
+        if (IsSCWithinRange(next, prev))
+        {
+            next.EndLine = prev.StartLine;
+            next.EndColumn = prev.StartColumn;
+        }
+
+        if (IsECWithinRange(next, prev))
+        {
+            next.StartLine = prev.EndLine;
+            next.StartColumn = prev.EndColumn;
+        }
+
+        return [next];
     }
 
     public List<Operation> Transform(Operation op, Dictionary<NumberFormatInfo, List<Operation>> history)

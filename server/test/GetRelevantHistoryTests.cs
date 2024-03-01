@@ -19,16 +19,17 @@ public class GetRelevantHistoryTests
     public void GetRelevantHistoryTest()
     {
         Dictionary<int, List<Operation>> history = new(){
-            { 1, new List<Operation>() { Op(1, 1, 1, 1, "1")} },
-            { 2, new List<Operation>() { Op(1, 1, 1, 1, "2")} },
-            { 3, new List<Operation>() { Op(1, 1, 1, 1, "3")} },
-            { 4, new List<Operation>() { Op(1, 1, 1, 1, "4")} }
+            { 1, [ Op(1, 1, 1, 1, "1") ] },
+            { 2, [ Op(1, 1, 1, 1, "2"),  Op(1, 1, 1, 1, "3") ] },
+            { 3, [ Op(1, 1, 1, 1, "4") ] },
+            { 4, [ Op(1, 1, 1, 1, "5") ] }
         };
 
         var expected = new List<Operation>() {
             Op(1, 1, 1, 1, "2"),
             Op(1, 1, 1, 1, "3"),
-            Op(1, 1, 1, 1, "4")
+            Op(1, 1, 1, 1, "4"),
+            Op(1, 1, 1, 1, "5")
         };
         Assert.Equivalent(expected, ts.GetRelevantHistory(2, history), true);
     }
