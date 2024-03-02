@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.VisualBasic;
 using Monaco.Services.Interfaces;
 using server.models;
 
@@ -142,9 +143,47 @@ public class TransformService : ITransformService
         return [next];
     }
 
-    public List<Operation> Transform(Operation op, Dictionary<NumberFormatInfo, List<Operation>> history)
+    public List<Operation> Transform(Operation op, Dictionary<int, List<Operation>> history)
     {
-        throw new NotImplementedException();
+        var transformedRequests = new List<Operation>();
+
+        var toTransformQueue = new Queue<(Operation Operation, int RevisionId)>();
+        toTransformQueue.Enqueue((op, -1));
+
+        while (toTransformQueue.TryDequeue(out var currentRequest))
+        {
+            var relevantHistory = GetRelevantHistory(op.RevisionId, history);
+
+            for (int i = 0; i < relevantHistory.Count; i++)
+            {
+                var historicalRequest = relevantHistory[i];
+
+                if (op.OriginatorId != historicalRequest.OriginatorId)
+                {
+                    var pair = ResolveConflictingRanges(historicalRequest, currentRequest.Operation);
+
+                    if (currentRequest.RevisionId < i)
+                    {
+                        currentRequest.Operation = TransformOperation(historicalRequest, pair[0]);
+                    }
+
+                    if (pair.Count == 2)
+                    {
+                        toTransformQueue.Enqueue((pair[1], i));
+                    }
+                }
+            }
+
+            foreach (var newHistoralRequest in transformedRequests)
+            {
+                if (IsPreviousOperationRelevant(newHistoralRequest, currentRequest.Operation))
+                {
+                    currentRequest.Operation = TransformOperation(newHistoralRequest, currentRequest.Operation);
+                }
+            }
+            transformedRequests.Add(currentRequest.Operation);
+        }
+        return transformedRequests;
     }
 
     public Operation TransformOperation(Operation prev, Operation next)
