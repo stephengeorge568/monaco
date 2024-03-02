@@ -44,6 +44,7 @@ function op(
     startColumn: startColumn,
     endLine: endLine,
     startLine: startLine,
-    originatorId: originatorId
+    originatorId: originatorId,
+    revisionId: -1,
   };
 }
