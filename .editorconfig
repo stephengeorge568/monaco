@@ -709,3 +709,8 @@ dotnet_naming_rule.parameters_rule.severity
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 ##########################################
+
+
+# Custom
+[*.cs]
+dotnet_diagnostic.CS8618.severity = none

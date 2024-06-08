@@ -1,6 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import { Operation } from "../models/Operation";
-const URL = process.env.HUB_ADDRESS ?? "http://localhost:5070/opHub";
+const URL = process.env.HUB_ADDRESS ?? "http://desktop.com:8080/opHub";
 class Connector {
   public connection: signalR.HubConnection;
   public events: (
@@ -12,7 +12,8 @@ class Connector {
 
   constructor() {
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(URL)
+      .withUrl(URL, {
+      })
       .withAutomaticReconnect()
       .build();
     this.connection.start().catch((err) => console.log(err));

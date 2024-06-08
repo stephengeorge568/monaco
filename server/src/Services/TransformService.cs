@@ -1,6 +1,4 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
-using Microsoft.VisualBasic;
 using Monaco.Services.Interfaces;
 using server.models;
 
@@ -10,13 +8,10 @@ namespace Monaco.Services;
 // integration of other async services later down the line.
 public class TransformService : ITransformService
 {
-    private int RevisionId;
-    private Dictionary<NumberFormatInfo, List<Operation>> history;
 
     public TransformService()
     {
-        RevisionId = 0;
-        history = new();
+
     }
 
     public List<Operation> GetRelevantHistory(int revisionId, Dictionary<int, List<Operation>> history)
@@ -183,6 +178,7 @@ public class TransformService : ITransformService
             }
             transformedRequests.Add(currentRequest.Operation);
         }
+
         return transformedRequests;
     }
 
@@ -194,7 +190,7 @@ public class TransformService : ITransformService
         var newEC = next.EndColumn;
         var newSL = next.StartLine;
         var newEL = next.EndLine;
-        var numberOfNewLinesInPrev = Regex.Split(prev.Text, @"\r\n|\r|\n").Length - 1;
+        var numberOfNewLinesInPrev = Regex.Split(prev.Text, @"\r\n|\n").Length - 1;
         var prevTextLengthAfterLastNewLine = numberOfNewLinesInPrev > 0 ? prev.Text.Length - prev.Text.LastIndexOf("\n") - 1 : prev.Text.Length;
 
         var netNewLineNumberChange = numberOfNewLinesInPrev - (prev.EndLine - prev.StartLine);

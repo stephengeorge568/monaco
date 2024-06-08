@@ -23,15 +23,22 @@ public class TransformTests
                 {2, [ Op(5, 5, 1, 1, "B", 2, "2") ]},
                 {3, [ Op(6, 6, 1, 1, "Q", 3, "2") ]},
             },
-            [Op(8, 8, 1, 1, "1", 1, "1")] //"casesBQreso" - now revisionId 5
+            [Op(8, 8, 1, 1, "1", 4, "1")] //"casesBQreso" - now revisionId 4
         },
         {
-            Op(1, 12, 1, 1, "", 0, "2"), // "Lorem ipsum" - now revisionId 0
+            Op(1, 12, 1, 1, "", 1, "2"), // "Lorem ipsum" - now revisionId 0
             new Dictionary<int, List<Operation>> {
-                {1, [ Op(7, 12, 1, 1, "", 0, "3") ]}, // "Lorem "
-                {2, [ Op(7, 7, 1, 1, "X", 1, "3") ]}, // "Lorem X"
+                {1, [ Op(7, 12, 1, 1, "", 1, "3") ]}, // "Lorem "
+                {2, [ Op(7, 7, 1, 1, "X", 2, "3") ]}, // "Lorem X"
             },
-            [Op(1, 7, 1, 1, "", 1, "2")] //"X" - now revisionId 3
+            [Op(1, 7, 1, 1, "", 3, "2")] //"X" - now revisionId 3
+        },
+        {
+            Op(2, 2, 1, 1, "a", 0, "z"), //
+            new Dictionary<int, List<Operation>> {
+                {1, [  Op(1, 1, 1, 1, "b", 1, "z") ]}, // 
+            },
+            [Op(2, 2, 1, 1, "a", 1, "z")] //
         },
     };
 

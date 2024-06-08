@@ -5,12 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Operation, fromEvent } from "../../models/Operation";
 import { transform } from "src/utils/TransformUtils";
 import { Queue } from "src/models/Queue";
-//import { transform } from '../../utils/TransformUtils';
 
 export default function Code() {
-  const [documentId, setDocumentId] = useState("BigTimeIdOhYeah");
+  const [documentId] = useState("BigTimeIdOhYeah");
   const webSocket = Connector();
-  var isProgrammaticChange = useRef<boolean>(false);
+  const isProgrammaticChange = useRef<boolean>(false);
   // ive seen someone use state for this, look into
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const historyRef = useRef<Map<number, Operation[]>>(new Map());
@@ -22,7 +21,9 @@ export default function Code() {
     if (!isSendingOperation.current) {
       let op: Operation | undefined = outgoingOperations.current.dequeue();
       if (op) {
-        webSocket.newOperation(op, documentId);
+        let transformedOp = transform(op, historyRef.current);
+        // TODO stop this 2 operations bullshit from college
+        webSocket.newOperation(transformedOp[0], documentId);
       }
     }
   }, [documentId, webSocket]);
@@ -57,7 +58,16 @@ export default function Code() {
             ]
             // endCursorState TODO
           );
+          let newHistory: Map<number, Operation[]> = historyRef.current;
+          if (!newHistory.has(op.revisionId)) {
+            newHistory.set(op.revisionId, []);
+          }
+          newHistory.get(op.revisionId)?.push(op);
+          historyRef.current = newHistory;
         }
+
+        revisionId.current = op.revisionId;
+        
         isProgrammaticChange.current = false;
       }
     },
@@ -83,21 +93,29 @@ export default function Code() {
         webSocket.connection.connectionId ?? "",
         revisionId.current
       );
-      historyRef.current.get(revisionId.current)?.push(op);
+      let newHistory: Map<number, Operation[]> = historyRef.current;
 
+      if (!newHistory.has(revisionId.current)) {
+        newHistory.set(revisionId.current, []);
+      }
+      newHistory.get(revisionId.current)?.push(op);
+      historyRef.current = newHistory;
       outgoingOperations.current.enqueue(op);
       sendNextOperation();
     }
   }
 
   function click() {
-    setDocumentId("test");
+    historyRef.current = new Map();
+    revisionId.current = 0;
   }
 
   function handleEditorDidMount(
     editor: monaco.editor.IStandaloneCodeEditor | null,
     monaco: Monaco
   ) {
+    editor?.getModel()?.setEOL(monaco.editor.EndOfLineSequence.LF);
+    editor?.updateOptions({ quickSuggestions: false });
     webSocket.addToGroup(documentId);
     editorRef.current = editor;
   }

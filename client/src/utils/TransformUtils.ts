@@ -39,6 +39,7 @@ export function transform(
     }
     transformedRequests.push(currentRequest[0]);
   }
+  
   return transformedRequests;
 }
 
