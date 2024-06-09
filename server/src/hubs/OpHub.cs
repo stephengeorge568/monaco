@@ -24,6 +24,7 @@ namespace Monaco.Hubs
             var transformedOps = _documentService.CommitChange(operation);
             Console.WriteLine(transformedOps[0].ToString);
             Console.WriteLine('\n');
+            Thread.Sleep(1000);
             await Task.WhenAll(transformedOps.Select(o => PropogateOperationToGroup(o, documentId)));
             await Clients.Caller.SendAsync("operationTransformedAck", _documentService.RevisionId);
         }

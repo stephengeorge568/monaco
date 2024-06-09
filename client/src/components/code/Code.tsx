@@ -19,6 +19,7 @@ export default function Code() {
 
   const sendNextOperation = useCallback(() => {
     if (!isSendingOperation.current) {
+      isSendingOperation.current = true;
       let op: Operation | undefined = outgoingOperations.current.dequeue();
       if (op) {
         let transformedOp = transform(op, historyRef.current);
@@ -93,6 +94,12 @@ export default function Code() {
         webSocket.connection.connectionId ?? "",
         revisionId.current
       );
+
+      if (op.text !== 'a')
+      {
+        // console.log('shit broke champ');
+      }
+
       let newHistory: Map<number, Operation[]> = historyRef.current;
 
       if (!newHistory.has(revisionId.current)) {
