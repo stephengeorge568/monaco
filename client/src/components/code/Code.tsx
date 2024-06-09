@@ -18,10 +18,11 @@ export default function Code() {
   const isSendingOperation = useRef<boolean>(false);
 
   const sendNextOperation = useCallback(() => {
+    console.log(isSendingOperation.current);
     if (!isSendingOperation.current) {
-      isSendingOperation.current = true;
       let op: Operation | undefined = outgoingOperations.current.dequeue();
       if (op) {
+        isSendingOperation.current = true;
         let transformedOp = transform(op, historyRef.current);
         // TODO stop this 2 operations bullshit from college
         webSocket.newOperation(transformedOp[0], documentId);
@@ -31,6 +32,7 @@ export default function Code() {
 
   const onOperationTransformedAck = useCallback(
     (newRevisionId: number) => {
+      console.log("New revisionId from ACK: ", newRevisionId);
       revisionId.current = newRevisionId;
       isSendingOperation.current = false;
       sendNextOperation();
@@ -97,7 +99,7 @@ export default function Code() {
 
       if (op.text !== 'a')
       {
-        // console.log('shit broke champ');
+        console.warn('shit broke champ');
       }
 
       let newHistory: Map<number, Operation[]> = historyRef.current;

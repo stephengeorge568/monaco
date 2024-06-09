@@ -32,7 +32,7 @@ class Connector {
   public newOperation = (op: Operation, documentId: string) => {
     this.connection
       .send("newOperation", op, documentId)
-      .then((x) => console.log("newOperation sent"));
+      .then((x) => console.log("newOperation sent", op));
   };
   public addToGroup = (groupName: string) => {
     this.connection
