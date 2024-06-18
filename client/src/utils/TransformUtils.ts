@@ -114,7 +114,7 @@ export function getRelevantHistory(
 ): Operation[] {
   let relevantRequests: Operation[] = [];
   history.forEach((list, id) => {
-    if (id >= revId) {
+    if (id > revId) {
       relevantRequests = [...relevantRequests, ...list];
     }
   });

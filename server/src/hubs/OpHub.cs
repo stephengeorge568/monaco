@@ -15,11 +15,12 @@ namespace Monaco.Hubs
         public async Task NewOperation(Operation operation, string documentId)
         {
             Console.WriteLine(operation.ToString);
-            // if (!_documentService.GetPreHistory().ContainsKey(operation.RevisionId))
-            // {
-            //     _documentService.GetPreHistory().Add(operation.RevisionId, new List<Operation>());
-            // }
-            // _documentService.GetPreHistory()[operation.RevisionId].Add(operation.DeepCopy());
+            if (!_documentService.GetPreHistory().ContainsKey(operation.RevisionId))
+            {
+                _documentService.GetPreHistory().Add(operation.RevisionId, new List<Operation>());
+            }
+            _documentService.GetPreHistory()[operation.RevisionId].Add(operation.DeepCopy());
+            
             var transformedOps = _documentService.CommitChange(operation);
             Console.WriteLine(transformedOps[0].ToString);
             Console.WriteLine('\n');

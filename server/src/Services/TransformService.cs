@@ -19,7 +19,7 @@ public class TransformService : ITransformService
         var relevantRequests = new List<Operation>();
         foreach (var pair in history)
         {
-            if (pair.Key >= revisionId)
+            if (pair.Key > revisionId)
             {
                 relevantRequests.AddRange(pair.Value);
             }

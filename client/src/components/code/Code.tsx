@@ -18,12 +18,13 @@ export default function Code() {
   const isSendingOperation = useRef<boolean>(false);
 
   const sendNextOperation = useCallback(() => {
-    console.log(isSendingOperation.current);
     if (!isSendingOperation.current) {
       let op: Operation | undefined = outgoingOperations.current.dequeue();
       if (op) {
         isSendingOperation.current = true;
+        console.log('Pre', op);
         let transformedOp = transform(op, historyRef.current);
+        transformedOp[0].revisionId = revisionId.current;
         // TODO stop this 2 operations bullshit from college
         webSocket.newOperation(transformedOp[0], documentId);
       }
@@ -70,6 +71,7 @@ export default function Code() {
         }
 
         revisionId.current = op.revisionId;
+        console.log('New rev Id from propogation: ', op.revisionId);
         
         isProgrammaticChange.current = false;
       }
@@ -97,11 +99,6 @@ export default function Code() {
         revisionId.current
       );
 
-      if (op.text !== 'a')
-      {
-        console.warn('shit broke champ');
-      }
-
       let newHistory: Map<number, Operation[]> = historyRef.current;
 
       if (!newHistory.has(revisionId.current)) {
@@ -115,8 +112,7 @@ export default function Code() {
   }
 
   function click() {
-    historyRef.current = new Map();
-    revisionId.current = 0;
+    console.log(historyRef.current);
   }
 
   function handleEditorDidMount(
