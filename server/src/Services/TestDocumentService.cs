@@ -61,6 +61,7 @@ public class TestDocumentService : IDocumentService
         while (op.Id != nextUpInQueue.Id)
         {
             Thread.Sleep(100);
+            nextUpInQueue = ChangeQueue.Peek();
         }
 
         var transformedOps = _transformService.Transform(op, history);
@@ -81,7 +82,7 @@ public class TestDocumentService : IDocumentService
         {
             Model = ModelUtility.UpdateModel(Model, newOps);
         }
-        ChangeQueue.Dequeue();
+        // ChangeQueue.Dequeue(); placed in OpHub after propogation
         return transformedOps;
     }
 

@@ -113,6 +113,7 @@ export default function Code() {
 
   function click() {
     console.log(historyRef.current);
+    console.log(outgoingOperations.current);
   }
 
   function handleEditorDidMount(

@@ -27,6 +27,7 @@ namespace Monaco.Hubs
             // Thread.Sleep(1000);
             await Task.WhenAll(transformedOps.Select(o => PropogateOperationToGroup(o, documentId)));
             await Clients.Caller.SendAsync("operationTransformedAck", _documentService.RevisionId);
+            _documentService.ChangeQueue.Dequeue();
         }
 
         public override async Task OnConnectedAsync()
