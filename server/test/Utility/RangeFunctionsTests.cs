@@ -1,19 +1,10 @@
 namespace test;
 using Xunit;
-using Moq;
 using server.models;
-using Monaco.Services.Interfaces;
-using Monaco.Services;
+using Monaco.Utility;
 
 public class RangeFunctionsTests
 {
-    private readonly ITransformService ts;
-
-    public RangeFunctionsTests()
-    {
-        ts = new TransformService();
-    }
-
     public static TheoryData<Operation, Operation, bool> IsECWithinRangeData = new TheoryData<Operation, Operation, bool> {
         { Op(2, 5, 1, 1), Op(2, 4, 1, 1), true },
         { Op(4, 8, 1, 2), Op(1, 5, 1, 2), true },
@@ -24,7 +15,7 @@ public class RangeFunctionsTests
     [Theory(DisplayName = "IsECWithinRange"), MemberData(nameof(IsECWithinRangeData))]
     public void IsECWithinRangeTests(Operation prev, Operation next, bool expected)
     {
-        Assert.Equal(ts.IsECWithinRange(prev, next), expected);
+        Assert.Equal(Transformer.IsECWithinRange(prev, next), expected);
     }
 
     public static TheoryData<Operation, Operation, bool> IsSCWithinRangeData = new TheoryData<Operation, Operation, bool> {
@@ -42,7 +33,7 @@ public class RangeFunctionsTests
     [Theory(DisplayName = "IsECWithinRange"), MemberData(nameof(IsSCWithinRangeData))]
     public void IsSCWithinRangeTests(Operation prev, Operation next, bool expected)
     {
-        Assert.Equal(ts.IsSCWithinRange(prev, next), expected);
+        Assert.Equal(Transformer.IsSCWithinRange(prev, next), expected);
     }
 
     private static Operation Op(int sc, int ec, int sl, int el)

@@ -26,6 +26,7 @@ export default function Code() {
         let transformedOp = transform(op, historyRef.current);
         console.log('Outgoing Trans', copy(transformedOp[0]));
         transformedOp[0].revisionId = revisionId.current;
+        console.log(transformedOp[0], documentId);
         // TODO stop this 2 operations bullshit from college
         webSocket.newOperation(transformedOp[0], documentId);
       }

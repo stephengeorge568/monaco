@@ -1,19 +1,10 @@
 namespace test;
 using Xunit;
-using Moq;
 using server.models;
-using Monaco.Services.Interfaces;
-using Monaco.Services;
+using Monaco.Utility;
 
 public class IsPreviousOperationRelevantTests
 {
-    private readonly ITransformService ts;
-
-    public IsPreviousOperationRelevantTests()
-    {
-        ts = new TransformService();
-    }
-
     public static TheoryData<Operation, Operation, bool> IsPreviousOperationRelevantData = new TheoryData<Operation, Operation, bool> {
         { Op(1, 1, 1, 1, "1"), Op(1, 1, 1, 1, "2"), true },
         { Op(1, 1, 1, 1, "1"), Op(2, 2, 1, 1, "2"), true },
@@ -29,7 +20,7 @@ public class IsPreviousOperationRelevantTests
     [Theory(DisplayName = "IsPreviousOperationRelevant"), MemberData(nameof(IsPreviousOperationRelevantData))]
     public void IsPreviousOperationRelevantTest(Operation prev, Operation next, bool expected)
     {
-        Assert.Equal(ts.IsPreviousOperationRelevant(prev, next), expected);
+        Assert.Equal(Transformer.IsPreviousOperationRelevant(prev, next), expected);
     }
 
     private static Operation Op(int sc, int ec, int sl, int el, string id)

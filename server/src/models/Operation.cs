@@ -9,7 +9,7 @@ namespace server.models
         public int EndLine { get; set; }
         public int RevisionId { get; set; }
         public string OriginatorId { get; set; }
-        public string Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public bool IsSimpleInsert { 
             get 
             {
@@ -17,16 +17,11 @@ namespace server.models
             }
         }
 
-        public Operation()
-        {
-            Id = Guid.NewGuid().ToString();
-        }
-
         public new string ToString
         {
             get
             {
-                return $"{StartColumn}, {EndColumn}, {StartLine}, {EndLine} | {RevisionId}, {Text}";
+                return $"{StartColumn}, {EndColumn}, {StartLine}, {EndLine} | {RevisionId} | {Text}";
             }
         }
 
@@ -34,6 +29,7 @@ namespace server.models
         {
             return new Operation
             {
+                Id = this.Id,
                 Text = this.Text,
                 StartColumn = this.StartColumn,
                 EndColumn = this.EndColumn,
