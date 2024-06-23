@@ -2,7 +2,7 @@ import Editor, { Monaco } from "@monaco-editor/react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import Connector from "../../utils/SignalrConnection";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Operation, fromEvent } from "../../models/Operation";
+import { Operation, copy, fromEvent } from "../../models/Operation";
 import { transform } from "src/utils/TransformUtils";
 import { Queue } from "src/models/Queue";
 
@@ -22,8 +22,9 @@ export default function Code() {
       let op: Operation | undefined = outgoingOperations.current.dequeue();
       if (op) {
         isSendingOperation.current = true;
-        console.log('Pre', op);
+        console.log('Outgoing Pre', copy(op));
         let transformedOp = transform(op, historyRef.current);
+        console.log('Outgoing Trans', copy(transformedOp[0]));
         transformedOp[0].revisionId = revisionId.current;
         // TODO stop this 2 operations bullshit from college
         webSocket.newOperation(transformedOp[0], documentId);
@@ -44,7 +45,9 @@ export default function Code() {
   const onOperationReceived = useCallback(
     (op: Operation) => {
       if (op.originatorId !== webSocket.connection.connectionId) {
+        console.log('Recieved pre: ', copy(op));
         let transformedOps: Operation[] = transform(op, historyRef.current);
+        console.log('Recieved trans: ', copy(transformedOps[0]));
         isProgrammaticChange.current = true;
         for (var change of transformedOps) {
           editorRef.current?.executeEdits(
@@ -62,6 +65,12 @@ export default function Code() {
             ]
             // endCursorState TODO
           );
+
+          // might not need this if check, do always potentially
+          if (revisionId.current < op.revisionId) {
+            revisionId.current = op.revisionId;
+          }
+
           let newHistory: Map<number, Operation[]> = historyRef.current;
           if (!newHistory.has(op.revisionId)) {
             newHistory.set(op.revisionId, []);
@@ -69,11 +78,8 @@ export default function Code() {
           newHistory.get(op.revisionId)?.push(op);
           historyRef.current = newHistory;
         }
-
-        revisionId.current = op.revisionId;
-        console.log('New rev Id from propogation: ', op.revisionId);
-        
         isProgrammaticChange.current = false;
+        console.log('New rev Id from propogation: ', op.revisionId);
       }
     },
     [webSocket.connection.connectionId]
@@ -101,10 +107,10 @@ export default function Code() {
 
       let newHistory: Map<number, Operation[]> = historyRef.current;
 
-      if (!newHistory.has(revisionId.current)) {
-        newHistory.set(revisionId.current, []);
+      if (!newHistory.has(op.revisionId)) {
+        newHistory.set(op.revisionId, []);
       }
-      newHistory.get(revisionId.current)?.push(op);
+      newHistory.get(op.revisionId)?.push(copy(op));
       historyRef.current = newHistory;
       outgoingOperations.current.enqueue(op);
       sendNextOperation();

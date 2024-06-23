@@ -22,4 +22,16 @@ export function fromEvent(event: monaco.editor.IModelContentChangedEvent, origin
   };
 }
 
+export function copy(op: Operation): Operation {
+  return {
+    revisionId: op.revisionId,
+    text: op.text,
+    endColumn: op.endColumn,
+    startColumn: op.startColumn,
+    startLine: op.startLine,
+    endLine: op.endLine,
+    originatorId: op.originatorId,
+  };
+}
+
 export type OpHistory = { [revId: number]: Operation };
