@@ -1,16 +1,18 @@
 import Editor, { Monaco } from "@monaco-editor/react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import Connector from "../../utils/SignalrConnection";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Operation, copy, fromEvent } from "../../models/Operation";
 import { transform } from "src/utils/TransformUtils";
 import { Queue } from "src/models/Queue";
 
-export default function Code() {
-  const [documentId] = useState("BigTimeIdOhYeah");
+interface CodeProps {
+  documentId: string;
+}
+
+export default function Code({documentId}: CodeProps) {
   const webSocket = Connector();
   const isProgrammaticChange = useRef<boolean>(false);
-  // ive seen someone use state for this, look into
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const historyRef = useRef<Map<number, Operation[]>>(new Map());
   const revisionId = useRef<number>(0);
@@ -22,12 +24,9 @@ export default function Code() {
       let op: Operation | undefined = outgoingOperations.current.dequeue();
       if (op) {
         isSendingOperation.current = true;
-        console.log('Outgoing Pre', copy(op));
         let transformedOp = transform(op, historyRef.current);
-        console.log('Outgoing Trans', copy(transformedOp[0]));
         transformedOp[0].revisionId = revisionId.current;
-        console.log(transformedOp[0], documentId);
-        // TODO stop this 2 operations bullshit from college
+        // TODO finalize 2 ops
         webSocket.newOperation(transformedOp[0], documentId);
       }
     }
@@ -35,7 +34,6 @@ export default function Code() {
 
   const onOperationTransformedAck = useCallback(
     (newRevisionId: number) => {
-      console.log("New revisionId from ACK: ", newRevisionId);
       revisionId.current = newRevisionId;
       isSendingOperation.current = false;
       sendNextOperation();
@@ -46,9 +44,7 @@ export default function Code() {
   const onOperationReceived = useCallback(
     (op: Operation) => {
       if (op.originatorId !== webSocket.connection.connectionId) {
-        console.log('Recieved pre: ', copy(op));
         let transformedOps: Operation[] = transform(op, historyRef.current);
-        console.log('Recieved trans: ', copy(transformedOps[0]));
         isProgrammaticChange.current = true;
         for (var change of transformedOps) {
           editorRef.current?.executeEdits(
@@ -64,10 +60,8 @@ export default function Code() {
                 text: change.text,
               },
             ]
-            // endCursorState TODO
           );
 
-          // might not need this if check, do always potentially
           if (revisionId.current < op.revisionId) {
             revisionId.current = op.revisionId;
           }
@@ -80,7 +74,6 @@ export default function Code() {
           historyRef.current = newHistory;
         }
         isProgrammaticChange.current = false;
-        console.log('New rev Id from propogation: ', op.revisionId);
       }
     },
     [webSocket.connection.connectionId]
@@ -118,11 +111,6 @@ export default function Code() {
     }
   }
 
-  function click() {
-    console.log(historyRef.current);
-    console.log(outgoingOperations.current);
-  }
-
   function handleEditorDidMount(
     editor: monaco.editor.IStandaloneCodeEditor | null,
     monaco: Monaco
@@ -136,7 +124,6 @@ export default function Code() {
   return (
     // https://www.npmjs.com/package/@monaco-editor/react
     <>
-      <button onClick={click}>Press</button>
       <Editor
         height="100vh"
         defaultLanguage="typescript"

@@ -43,7 +43,6 @@ export function transform(
   return transformedRequests;
 }
 
-// Relies on assumption that revisionIds have already been considered
 export function isPreviousOperationRelevent(
   prev: Operation,
   next: Operation
@@ -160,7 +159,7 @@ export function transformOperation(
   } else {
     if (numberOfNewLinesInPrev > 0) {
       if (next.startLine === prev.endLine) {
-        newSC = newSC - prev.endColumn + prevTextLengthAfterLastNewLine + 1; // do i need +1?
+        newSC = newSC - prev.endColumn + prevTextLengthAfterLastNewLine + 1;
       }
       if (next.endLine === prev.endLine) {
         newEC = newEC - prev.endColumn + prevTextLengthAfterLastNewLine + 1;

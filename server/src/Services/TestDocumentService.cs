@@ -11,7 +11,8 @@ using server.models;
     In a production environment, many of the properties (Model, history, etc) of this service may be
     extracted out into other services/systems in order to allow scaling both in terms of # of documents
     able to be editted as well as in terms of application scalability. For the purposes of this Test
-    implementation, I will only support one document model at a time.
+    implementation, I will only support one document model at a time - which is stored locally in memory
+    as a property of this singleton.
 */
 public class TestDocumentService : IDocumentService
 {
