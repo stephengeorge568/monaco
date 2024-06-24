@@ -1,19 +1,10 @@
 namespace test;
 using Xunit;
-using Moq;
 using server.models;
-using Monaco.Services.Interfaces;
-using Monaco.Services;
+using Monaco.Utility;
 
 public class TransformOperationTests
 {
-    private readonly ITransformService ts;
-
-    public TransformOperationTests()
-    {
-        ts = new TransformService();
-    }
-
     public static TheoryData<Operation, Operation, Operation> TransformOperationData = new TheoryData<Operation, Operation, Operation> {
         { Op(1, 1, 1, 1, "1", "1"), Op(1, 1, 1, 1, "2", ""), Op(2, 2, 1, 1, "2", "") },
         { Op(1, 1, 1, 1, "1a", "2"), Op(1, 1, 1, 1, "2", ""), Op(3, 3, 1, 1, "2", "") },
@@ -34,13 +25,14 @@ public class TransformOperationTests
     [Theory(DisplayName = "TransformOperation"), MemberData(nameof(TransformOperationData))]
     public void TransformOperationTest(Operation prev, Operation next, Operation expected)
     {
-        Assert.Equivalent(ts.TransformOperation(prev, next), expected, true);
+        Assert.Equivalent(Transformer.TransformOperation(prev, next), expected, true);
     }
 
     private static Operation Op(int sc, int ec, int sl, int el, string text, string originatorId)
     {
         return new Operation
         {
+            Id = "Id_Not_Relevant",
             StartColumn = sc,
             EndColumn = ec,
             StartLine = sl,

@@ -1,97 +1,95 @@
 namespace Monaco.Services;
 
 using System.Collections.Generic;
+using Microsoft.AspNetCore.SignalR;
+using Monaco.Hubs;
 using Monaco.Services.Interfaces;
 using Monaco.Utility;
 using server.models;
 
+/**
+    In a production environment, many of the properties (Model, history, etc) of this service may be
+    extracted out into other services/systems in order to allow scaling both in terms of # of documents
+    able to be editted as well as in terms of application scalability. For the purposes of this Test
+    implementation, I will only support one document model at a time - which is stored locally in memory
+    as a property of this singleton.
+*/
 public class TestDocumentService : IDocumentService
 {
     public int RevisionId { get; set; }
 
     public Queue<Operation> ChangeQueue { get; set; }
 
-    // Look into conccurrent dictionary
-    private Dictionary<int, List<Operation>> history;
+    public Dictionary<int, List<Operation>> History { get; set; }
 
-    private Dictionary<int, List<Operation>> historyPre;
+    public Dictionary<int, List<Operation>> PreHistory { get; set; }
 
-    private string Model;
+    public string Model { get; set; }
 
-    private ITransformService _transformService;
+    private readonly IHubContext<OpHub> _hubContext;
 
-    public TestDocumentService(ITransformService transformService)
+    public TestDocumentService(IHubContext<OpHub> hubContext)
     {
+        _hubContext = hubContext;
         RevisionId = 0;
         Model = "";
-        history = new Dictionary<int, List<Operation>> { {0, [  ]}, };
-        historyPre = new();
+        History = new Dictionary<int, List<Operation>> {};
+        PreHistory = new();
         ChangeQueue = new();
-        _transformService = transformService;
     }
 
-    public Dictionary<int, List<Operation>> GetHistory()
-    {
-        return history;
-    }
-
-    public Dictionary<int, List<Operation>> GetPreHistory()
-    {
-        return historyPre;
-    }
-
-    public string GetModel()
-    {
-        return Model;
-    }
-
-    // This shit needs to be rewritten.
-    /*
-        Transform incoming operations against the server's history.
-        Apply the transformed operation to the document.
-        Increment the server's revisionId.
-        Assign the new revisionId to the operation.
-        Add the operation to the server's history.
-        Propagate the operation and new revisionId to all clients.
-    */
-    public List<Operation> CommitChange(Operation op)
+    public async Task<int> CommitChange(Operation op, string documentId)
     {
         ChangeQueue.Enqueue(op);
-        var nextUpInQueue = ChangeQueue.Peek();
-        while (op.Id != nextUpInQueue.Id)
-        {
-            Thread.Sleep(100);
-            nextUpInQueue = ChangeQueue.Peek();
-        }
+        WaitForTurn(op.Id);
 
-        var transformedOps = _transformService.Transform(op, history);
+        var transformedOps = Transformer.Transform(op, History);
 
+        // Commit change to model.
+        // Any revision to model increments document revision Id, and the Operation responsible
+        // for a given revision will also share that new revisionId.
         RevisionId++;
-
-        // This violates Microsoft's intent for Collection.All()
-        // This sets all the RevIds in transformedOps to RevisionId
-        // rewrite
-        transformedOps.All(o => { o.RevisionId = RevisionId; return true; });
-
-        if (!history.ContainsKey(transformedOps.First().RevisionId))
+        foreach (var newOp in transformedOps)
         {
-            history[transformedOps.First().RevisionId] = [];
+            Model = ModelUtility.UpdateModel(Model, newOp);
+            newOp.RevisionId = RevisionId;
         }
-        history[transformedOps.First().RevisionId].AddRange(transformedOps);
-        foreach (var newOps in transformedOps)
-        {
-            Model = ModelUtility.UpdateModel(Model, newOps);
-        }
-        // ChangeQueue.Dequeue(); placed in OpHub after propogation
-        return transformedOps;
+
+        CommitChangesToHistory(History, transformedOps);
+
+        await Task.WhenAll(transformedOps.Select(o => PropogateOperationToGroup(o, documentId)));
+        
+        ChangeQueue.Dequeue();
+        return RevisionId;
     }
 
     public void Reset()
     {
-        history = new Dictionary<int, List<Operation>> { {0, [  ]}, };
-        historyPre = new Dictionary<int, List<Operation>> { {0, [  ]}, };
+        History = new Dictionary<int, List<Operation>>();
+        PreHistory = new Dictionary<int, List<Operation>>();
         RevisionId = 0;
         Model = "";
         ChangeQueue = new();
+    }
+
+    private void CommitChangesToHistory(Dictionary<int, List<Operation>> history, List<Operation> operations)
+    {
+        if (!history.ContainsKey(operations.First().RevisionId))
+        {
+            history[operations.First().RevisionId] = [];
+        }
+        history[operations.First().RevisionId].AddRange(operations);
+    }
+
+    private void WaitForTurn(string id)
+    {
+        while (id != ChangeQueue.Peek().Id)
+        {
+            Thread.Sleep(100);
+        }
+    }
+
+    private async Task PropogateOperationToGroup(Operation operation, string group){
+        await _hubContext.Clients.Group(group).SendAsync("operationRecieved", operation);
     }
 }

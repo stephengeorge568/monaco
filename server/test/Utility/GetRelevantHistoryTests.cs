@@ -1,17 +1,13 @@
 namespace test;
 using Xunit;
-using Moq;
 using server.models;
-using Monaco.Services.Interfaces;
-using Monaco.Services;
+using Monaco.Utility;
 
 public class GetRelevantHistoryTests
 {
-    private readonly ITransformService ts;
 
     public GetRelevantHistoryTests()
     {
-        ts = new TransformService();
     }
 
 
@@ -26,18 +22,17 @@ public class GetRelevantHistoryTests
         };
 
         var expected = new List<Operation>() {
-            Op(1, 1, 1, 1, "2"),
-            Op(1, 1, 1, 1, "3"),
             Op(1, 1, 1, 1, "4"),
             Op(1, 1, 1, 1, "5")
         };
-        Assert.Equivalent(expected, ts.GetRelevantHistory(2, history), true);
+        Assert.Equivalent(expected, Transformer.GetRelevantHistory(2, history), true);
     }
 
     private static Operation Op(int sc, int ec, int sl, int el, string id)
     {
         return new Operation
         {
+            Id = "Id_Not_Relevant",
             OriginatorId = id,
             StartColumn = sc,
             EndColumn = ec,

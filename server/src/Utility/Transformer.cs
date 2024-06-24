@@ -1,20 +1,11 @@
 using System.Text.RegularExpressions;
-using Monaco.Services.Interfaces;
 using server.models;
 
-namespace Monaco.Services;
+namespace Monaco.Utility;
 
-// Could be static class in current state, but would likely require
-// integration of other async services later down the line.
-public class TransformService : ITransformService
+public static class Transformer
 {
-
-    public TransformService()
-    {
-
-    }
-
-    public List<Operation> GetRelevantHistory(int revisionId, Dictionary<int, List<Operation>> history)
+    public static List<Operation> GetRelevantHistory(int revisionId, Dictionary<int, List<Operation>> history)
     {
         var relevantRequests = new List<Operation>();
         foreach (var pair in history)
@@ -27,7 +18,7 @@ public class TransformService : ITransformService
         return relevantRequests;
     }
 
-    public bool IsECWithinRange(Operation prev, Operation next)
+    public static bool IsECWithinRange(Operation prev, Operation next)
     {
         if (next.EndLine < prev.EndLine && next.EndLine > prev.StartLine) return true;
 
@@ -48,7 +39,7 @@ public class TransformService : ITransformService
         return false;
     }
 
-    public bool IsPreviousOperationRelevant(Operation prev, Operation next)
+    public static bool IsPreviousOperationRelevant(Operation prev, Operation next)
     {
         if (prev.OriginatorId == next.OriginatorId) return false;
 
@@ -58,7 +49,7 @@ public class TransformService : ITransformService
         if (isPrevStartLineAfterNextEndLine) return false;
         if (isSameLine)
         {
-            if (IsSimpleInsert(next))
+            if (next.IsSimpleInsert)
             {
                 if (next.EndColumn < prev.StartColumn) return false;
             }
@@ -70,7 +61,7 @@ public class TransformService : ITransformService
         return true;
     }
 
-    public bool IsSCWithinRange(Operation prev, Operation next)
+    public static bool IsSCWithinRange(Operation prev, Operation next)
     {
         if (next.StartLine > prev.StartLine && next.StartLine < prev.EndLine)
         {
@@ -93,9 +84,9 @@ public class TransformService : ITransformService
         return false;
     }
 
-    public List<Operation> ResolveConflictingRanges(Operation prev, Operation next)
+    public static List<Operation> ResolveConflictingRanges(Operation prev, Operation next)
     {
-        if (IsSimpleInsert(prev) || IsSimpleInsert(next))
+        if (prev.IsSimpleInsert || next.IsSimpleInsert)
         {
             return [next];
         }
@@ -138,7 +129,7 @@ public class TransformService : ITransformService
         return [next];
     }
 
-    public List<Operation> Transform(Operation op, Dictionary<int, List<Operation>> history)
+    public static List<Operation> Transform(Operation op, Dictionary<int, List<Operation>> history)
     {
         var transformedRequests = new List<Operation>();
 
@@ -182,7 +173,7 @@ public class TransformService : ITransformService
         return transformedRequests;
     }
 
-    public Operation TransformOperation(Operation prev, Operation next)
+    public static Operation TransformOperation(Operation prev, Operation next)
     {
         if (!IsPreviousOperationRelevant(prev, next)) return next;
 
@@ -195,7 +186,7 @@ public class TransformService : ITransformService
 
         var netNewLineNumberChange = numberOfNewLinesInPrev - (prev.EndLine - prev.StartLine);
 
-        if (IsSimpleInsert(prev))
+        if (prev.IsSimpleInsert)
         {
             if (numberOfNewLinesInPrev > 0)
             {
@@ -251,7 +242,7 @@ public class TransformService : ITransformService
                 }
                 else
                 {
-                    if (IsSimpleInsert(next))
+                    if (next.IsSimpleInsert)
                     {
                         newEC = newSC;
                     }
@@ -282,10 +273,5 @@ public class TransformService : ITransformService
         next.StartLine = newSL;
         next.EndLine = newEL;
         return next;
-    }
-
-    public bool IsSimpleInsert(Operation op)
-    {
-        return op.EndColumn == op.StartColumn && op.EndLine == op.StartLine;
     }
 }

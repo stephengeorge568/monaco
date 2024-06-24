@@ -11,22 +11,12 @@ namespace Monaco.Hubs
         {
             _documentService = documentService;
         }
-        
+
         public async Task NewOperation(Operation operation, string documentId)
-        {
-            Console.WriteLine(operation.ToString);
-            if (!_documentService.GetPreHistory().ContainsKey(operation.RevisionId))
-            {
-                _documentService.GetPreHistory().Add(operation.RevisionId, new List<Operation>());
-            }
-            _documentService.GetPreHistory()[operation.RevisionId].Add(operation.DeepCopy());
-            
-            var transformedOps = _documentService.CommitChange(operation);
-            Console.WriteLine(transformedOps[0].ToString);
-            Console.WriteLine('\n');
-            // Thread.Sleep(1000);
-            await Task.WhenAll(transformedOps.Select(o => PropogateOperationToGroup(o, documentId)));
-            await Clients.Caller.SendAsync("operationTransformedAck", _documentService.RevisionId);
+        {        
+            _documentService.ChangeQueue.Enqueue(operation);
+            var newRevisionId = await _documentService.CommitChange(operation, documentId);
+            await Clients.Caller.SendAsync("operationTransformedAck", newRevisionId);
             _documentService.ChangeQueue.Dequeue();
         }
 
@@ -54,7 +44,6 @@ namespace Monaco.Hubs
         }
 
         public async Task PropogateOperationToGroup(Operation operation, string group){
-            Console.WriteLine($"Propogating to {group}");
             await Clients.Group(group).SendAsync("operationRecieved", operation);
         }
     }

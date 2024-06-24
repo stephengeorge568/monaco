@@ -19,10 +19,10 @@ public class TestController : ControllerBase
     public State Get()
     {
         return new State {
-            Model = _docService.GetModel(),
+            Model = _docService.Model,
             RevisionId = _docService.RevisionId,
-            History = _docService.GetHistory(),
-            PreHistory = _docService.GetPreHistory(),
+            History = _docService.History,
+            PreHistory = _docService.PreHistory,
         };
     }
 

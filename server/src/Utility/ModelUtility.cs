@@ -16,26 +16,6 @@ public static class ModelUtility
         }
     }
 
-    public static int GetSIndex(string model, int col, int line)
-    {
-        int index = 0;
-        int newLineCount = 0;
-        int colCount = 0;
-
-        // TODO just use model string array unnecessary lmao
-        char[] arr = model.ToCharArray();
-        while (index < arr.Count() && newLineCount < line - 1) {
-            if (arr[index] == '\n') newLineCount++;
-            index++;
-        }
-        while (index < arr.Count() && colCount < col - 1) {
-            colCount++;
-            index++;
-        }
-
-        return index;
-    }
-
     public static int GetIndex(string input, int column, int line)
     {
         int currentLine = 1;

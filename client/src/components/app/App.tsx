@@ -3,7 +3,7 @@ import Code from '../code/Code';
 
 function App() {
   return (
-    <Code></Code>
+    <Code documentId='BigTimeIdOhYeah'></Code>
   );
 }
 

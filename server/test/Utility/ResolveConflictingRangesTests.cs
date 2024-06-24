@@ -1,19 +1,10 @@
 namespace test;
 using Xunit;
-using Moq;
 using server.models;
-using Monaco.Services.Interfaces;
-using Monaco.Services;
+using Monaco.Utility;
 
 public class ResolveConflinctingRangesTests
 {
-    private readonly ITransformService ts;
-
-    public ResolveConflinctingRangesTests()
-    {
-        ts = new TransformService();
-    }
-
     public static TheoryData<Operation, Operation, List<Operation>> ResolveConflinctingRangeData = new TheoryData<Operation, Operation, List<Operation>> {
         { Op(1, 1, 1, 1, "1"), Op(1, 1, 1, 1, "2"), [Op(1, 1, 1, 1, "2")] },
         { Op(1, 4, 1, 1, "1"), Op(2, 6, 1, 1, "2"), [Op(4, 6, 1, 1, "2")] },
@@ -29,13 +20,16 @@ public class ResolveConflinctingRangesTests
     [Theory(DisplayName = "ResolveConflinctingRanges"), MemberData(nameof(ResolveConflinctingRangeData))]
     public void ResolveConflinctingRangeTests(Operation prev, Operation next, List<Operation> expected)
     {
-        Assert.Equivalent(ts.ResolveConflictingRanges(prev, next), expected, true);
+        var result = Transformer.ResolveConflictingRanges(prev, next);
+        result.ForEach(x => x.Id = "Id_Not_Relevant");
+        Assert.Equivalent(expected, result, true);
     }
 
     private static Operation Op(int sc, int ec, int sl, int el, string text)
     {
         return new Operation
         {
+            Id = "Id_Not_Relevant",
             StartColumn = sc,
             EndColumn = ec,
             StartLine = sl,
