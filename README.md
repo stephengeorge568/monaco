@@ -1,0 +1,1 @@
+Collaborative document editor that allows 1+ users editting the same document simultaneously. Syncing document state across server and clients is done through my implementation of operational transformation. Document editor is a code editor.
