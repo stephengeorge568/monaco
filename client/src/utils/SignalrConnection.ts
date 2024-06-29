@@ -1,6 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import { Operation } from "../models/Operation";
-const URL = process.env.HUB_ADDRESS ?? "http://desktop.com:8080/opHub";
+const URL = "http://192.168.1.160:8080/opHub";
 class Connector {
   public connection: signalR.HubConnection;
   public events: (
