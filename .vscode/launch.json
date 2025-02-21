@@ -10,20 +10,16 @@
             "args": [],
             "cwd": "${workspaceRoot}/server/src",
             "stopAtEntry": false,
-            // "launchBrowser": {
-            //     "enabled": true,
-            //     "args": "${auto-detect-url}",
-            //     "windows": {
-            //         "command": "cmd.exe",
-            //         "args": "/C start ${auto-detect-url}"
-            //     },
-            //     "osx": {
-            //         "command": "open"
-            //     },
-            //     "linux": {
-            //         "command": "xdg-open"
-            //     }
-            // },
+            // https://github.com/dgokcin/dotnet-cursor-debugging-with-breakpoints
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+
+                "pipeProgram": "bash",
+                "pipeArgs": ["-c"],
+                "debuggerPath": "${HOME}/.local/netcoredbg",
+                "debuggerArgs": ["--interpreter=vscode"],
+                "quoteArgs": true
+            },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             }
