@@ -14,7 +14,7 @@ Simultaneous document editing is the goal. This means that you need a process th
 
 Update [SignalrConnection.ts](https://github.com/stephengeorge568/monaco/blob/main/client/src/utils/SignalrConnection.ts#L3) with the IP address of the device on your network running the backend.
 
-`cd client && yarn && npm start`
+`cd client && yarn && yarn start`
 
 Access webpage using any browser at YOUR_IP:3000
 
@@ -35,4 +35,3 @@ Alternatively, vscode is configured to be able to launch the backend in debuggin
 - Refactor transformer
 - Refactor data model to be startIndex, endIndex. Instead of column and line based ??
 - Investigate if resolving conflicting ranges requires a possible introduction of secondary operation
-- Double check that the How to run steps are actually correct lol
